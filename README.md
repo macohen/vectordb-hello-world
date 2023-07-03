@@ -100,6 +100,36 @@ ENDPOINT=http://localhost:8080 CONFIG_ENDPOINT=http://localhost:19071 poetry run
 < DELETE http://localhost:19071/application/v2/tenant/default/application/default - 200
 ```
 
+### Milvus
+
+You can use [Zilliz Cloud](https://cloud.zilliz.com/), or download and run [Milvus](https://milvus.io/docs/install_standalone-docker.md) with Docker Compose.
+
+Deploy the sample application and schema.
+
+```sh
+(cd src/vespa/vector-app && zip -r - .) | \
+  curl --header Content-Type:application/zip --data-binary @- \
+  localhost:19071/application/v2/tenant/default/prepareandactivate
+
+curl --header Content-Type:application/zip -XPOST localhost:19071/application/v2/tenant/default/session
+```
+
+Finally, run the Vespa sample ingestion and search. You might have to wait for a few seconds for the endpoint to be ready after the last command.
+
+```sh
+ENDPOINT=http://localhost:8080 CONFIG_ENDPOINT=http://localhost:19071 poetry run src/vespa/hello.py
+
+> POST http://localhost:8080/document/v1/vector/vector/docid/vec1
+< POST http://localhost:8080/document/v1/vector/vector/docid/vec1 - 200
+> POST http://localhost:8080/document/v1/vector/vector/docid/vec2
+< POST http://localhost:8080/document/v1/vector/vector/docid/vec2 - 200
+> GET http://localhost:8080/search/?yql=select%20%2A%20from%20sources%20%2A%20where%20%7BtargetHits%3A%201%7D%20nearestNeighbor%28values%2Cvector_query_embedding%29&ranking.profile=vector_similarity&hits=1&input.query%28vector_query_embedding%29=%5B0.1%2C0.2%2C0.3%5D
+< GET http://localhost:8080/search/?yql=select%20%2A%20from%20sources%20%2A%20where%20%7BtargetHits%3A%201%7D%20nearestNeighbor%28values%2Cvector_query_embedding%29&ranking.profile=vector_similarity&hits=1&input.query%28vector_query_embedding%29=%5B0.1%2C0.2%2C0.3%5D - 200
+{'sddocname': 'vector', 'documentid': 'id:vector:vector::vec1', 'id': 'vec1', 'values': {'type': 'tensor<float>(x[3])', 'values': [0.10000000149011612, 0.20000000298023224, 0.30000001192092896]}, 'metadata': {'genre': 'drama'}}
+> DELETE http://localhost:19071/application/v2/tenant/default/application/default
+< DELETE http://localhost:19071/application/v2/tenant/default/application/default - 200
+```
+
 ## Developing
 
 See [DEVELOPER_GUIDE](DEVELOPER_GUIDE.md).
