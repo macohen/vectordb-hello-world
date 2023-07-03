@@ -109,8 +109,6 @@ Follow these docs to set up an initial example application: https://milvus.io/do
 Finally, run the Milvus sample ingestion and search included here. 
 
 ```sh
-ENDPOINT=http://localhost:9091 poetry run src/vespa/hello.py
-
 % ENDPOINT=http://localhost:9091 poetry run src/milvus/hello.py 
 > POST http://localhost:9091/api/v1/collection
 < POST http://localhost:9091/api/v1/collection - 200
